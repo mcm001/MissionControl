@@ -8,8 +8,8 @@ project(MissionControl)
 add_subdirectory(allwpilib)
 
 # Add our main executable.
-file(GLOB missioncontrol_src src/*.cc)
-add_executable(MissionControl ${missioncontrol_src})
+add_executable(MissionControl 
+    src/Main.cc src/Plot.cc src/MyHttpConnection.cpp src/WebSocketHandlers.cpp)
 
 # Set include directories.
 target_include_directories(MissionControl PRIVATE include)

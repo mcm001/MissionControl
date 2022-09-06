@@ -23,7 +23,7 @@ using namespace frc5190;
 
 static double last_time;
 
-ImPlotPoint ExtractPlotPoint(void* data, int idx) {
+ImPlotPoint ExtractPlotPoint(int idx, void* data) {
   return static_cast<ImPlotPoint*>(data)[idx];
 }
 
@@ -45,10 +45,10 @@ void Plot::Display() {
   ker_venturi_points[size_] = ImPlotPoint{now, nt_->GetNumber("kerVenturi", 0)};
   ker_inlet_points[size_] = ImPlotPoint{now, nt_->GetNumber("kerInletDucer", 0)};
   ker_pintile_points[size_] = ImPlotPoint{now, nt_->GetNumber("kerPintileDucer", 0)};
-  lox_tank_points[size_] = ImPlotPoint{now, nt_->GetNumber("loxTankDucer", 0)};
+  lox_tank_points[size_] = ImPlotPoint{now, nt_->GetNumber("loxTankDucer", 2)};
   lox_venturi_points[size_] = ImPlotPoint{now, nt_->GetNumber("loxVenturi", 0)};
-  lox_inlet_points[size_] = ImPlotPoint{now, nt_->GetNumber("loxInletDucer", 0)};
-  lox_pintile_points[size_] = ImPlotPoint{now, nt_->GetNumber("loxPintileDucer", 0)};
+  lox_inlet_points[size_] = ImPlotPoint{now, nt_->GetNumber("loxInletDucer", 1)};
+  lox_pintile_points[size_] = ImPlotPoint{now, nt_->GetNumber("loxPintileDucer", 4)};
 
   if (size_ < kMaxSize) {
     size_++;
