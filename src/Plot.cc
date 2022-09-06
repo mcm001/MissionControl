@@ -127,4 +127,5 @@ void Plot::Display() {
 
     ImPlot::EndPlot();
   }
+  ImPlot::EndSubplots();
 }
