@@ -28,53 +28,103 @@ Plot::Plot(std::shared_ptr<nt::NetworkTable> nt) : nt_{nt} {
 }
 
 void Plot::Display() {
-  // Get shooter speed and desired shooter speed.
-  double actual_shooter_speed =
-      nt_->GetNumber(keys::kShooterVelocity, 0) * 60 / 2 / wpi::numbers::pi;
-  double wanted_shooter_speed = nt_->GetNumber(keys::kShooterSpeedSetpoint, 0) *
-                                60 / 2 / wpi::numbers::pi;
-
-  // Get hood angle and desired hood angle.
-  double actual_hood_angle =
-      nt_->GetNumber(keys::kHoodPosition, 0) * 180 / wpi::numbers::pi;
-  double wanted_hood_angle =
-      nt_->GetNumber(keys::kHoodAngleSetpoint, 0) * 180 / wpi::numbers::pi;
-
   // Get current time.
   double now = wpi::Now() * 1.0e-6 - start_time_;
 
   // Add data to plot series.
+  ker_tank_points[size_] = ImPlotPoint{now, nt_->GetNumber("kerTankDucer", 0)};
+  ker_venturi_points[size_] = ImPlotPoint{now, nt_->GetNumber("kerVenturi", 0)};
+  ker_inlet_points[size_] = ImPlotPoint{now, nt_->GetNumber("kerInletDucer", 0)};
+  ker_pintile_points[size_] = ImPlotPoint{now, nt_->GetNumber("kerPintileDucer", 0)};
+  lox_tank_points[size_] = ImPlotPoint{now, nt_->GetNumber("loxTankDucer", 0)};
+  lox_venturi_points[size_] = ImPlotPoint{now, nt_->GetNumber("loxVenturi", 0)};
+  lox_inlet_points[size_] = ImPlotPoint{now, nt_->GetNumber("loxInletDucer", 0)};
+  lox_pintile_points[size_] = ImPlotPoint{now, nt_->GetNumber("loxPintileDucer", 0)};
+
   if (size_ < kMaxSize) {
-    actual_shooter_speed_[size_] = ImPlotPoint{now, actual_shooter_speed};
-    wanted_shooter_speed_[size_] = ImPlotPoint{now, wanted_shooter_speed};
-    actual_hood_angle_[size_] = ImPlotPoint{now, actual_hood_angle};
-    wanted_hood_angle_[size_] = ImPlotPoint{now, wanted_hood_angle};
     size_++;
   } else {
-    actual_shooter_speed_[offset_] = ImPlotPoint{now, actual_shooter_speed};
-    wanted_shooter_speed_[offset_] = ImPlotPoint{now, wanted_shooter_speed};
-    actual_hood_angle_[offset_] = ImPlotPoint{now, actual_hood_angle};
-    wanted_hood_angle_[offset_] = ImPlotPoint{now, wanted_hood_angle};
     offset_ = (offset_ + 1) % kMaxSize;
   }
 
   // Construct plots.
-  ImPlot::SetNextAxesLimits(now - kViewDuration, now, 0, 5000,
-                            ImPlotCond_Always);
-  if (ImPlot::BeginPlot("Shooter")) {
-    ImPlot::PlotLineG("Wanted Speed", &ExtractPlotPoint, wanted_shooter_speed_,
-                      size_);
-    ImPlot::PlotLineG("Actual Speed", &ExtractPlotPoint, actual_shooter_speed_,
-                      size_);
+  // ImPlot::SetNextAxesLimits(now - kViewDuration, now, -20, 20,
+  //                           ImPlotCond_Always);
+  ImPlot::BeginSubplots("Ducers", 2, 2, ImVec2(-1, -1));
+
+  ImPlot::SetNextAxisLimits(ImAxis_X1, now - kViewDuration, now, ImPlotCond_Always);
+  if (ImPlot::BeginPlot("Kerosene Pressures")) {
+    ImPlot::SetNextLineStyle(ImVec4(1,0.5f,1,1));
+    ImPlot::PlotLineG("Ker Tank", &ExtractPlotPoint, ker_tank_points, size_);
+
+    ImPlot::SetNextLineStyle(ImVec4(0,0.5f,1,1));
+    ImPlot::PlotLineG("Ker Venturi", &ExtractPlotPoint, ker_venturi_points,size_);
+
+    // RGBA colors
+    ImPlot::SetNextLineStyle(ImVec4(0,0.3,1,1));
+    ImPlot::PlotLineG("Ker Inlet", &ExtractPlotPoint, ker_inlet_points,size_);
+
+    ImPlot::SetNextLineStyle(ImVec4(0,1,0,1));
+    ImPlot::PlotLineG("Ker Pintile", &ExtractPlotPoint, ker_pintile_points,size_);
+
     ImPlot::EndPlot();
   }
 
-  ImPlot::SetNextAxesLimits(now - kViewDuration, now, 0, 70, ImPlotCond_Always);
-  if (ImPlot::BeginPlot("Hood")) {
-    ImPlot::PlotLineG("Wanted Angle", &ExtractPlotPoint, wanted_hood_angle_,
-                      size_);
-    ImPlot::PlotLineG("Actual Angle", &ExtractPlotPoint, actual_hood_angle_,
-                      size_);
+  ImGui::SameLine();
+
+  ImPlot::SetNextAxisLimits(ImAxis_X1, now - kViewDuration, now, ImPlotCond_Always);
+  if (ImPlot::BeginPlot("Lox Pressures")) {
+    ImPlot::SetNextLineStyle(ImVec4(1,0.5f,1,1));
+    ImPlot::PlotLineG("Lox Tank", &ExtractPlotPoint, lox_tank_points, size_);
+
+    ImPlot::SetNextLineStyle(ImVec4(0,0.5f,1,1));
+    ImPlot::PlotLineG("Lox Venturi", &ExtractPlotPoint, lox_venturi_points,size_);
+
+    // RGBA colors
+    ImPlot::SetNextLineStyle(ImVec4(0,0.3,1,1));
+    ImPlot::PlotLineG("Lox Inlet", &ExtractPlotPoint, lox_inlet_points,size_);
+
+    ImPlot::SetNextLineStyle(ImVec4(0,1,0,1));
+    ImPlot::PlotLineG("Lox Pintile", &ExtractPlotPoint, lox_pintile_points,size_);
+
+    ImPlot::EndPlot();
+  }
+
+  ImPlot::SetNextAxisLimits(ImAxis_X1, now - kViewDuration, now, ImPlotCond_Always);
+  if (ImPlot::BeginPlot("Kerosene Pressures")) {
+    ImPlot::SetNextLineStyle(ImVec4(1,0.5f,1,1));
+    ImPlot::PlotLineG("Ker Tank", &ExtractPlotPoint, ker_tank_points, size_);
+
+    ImPlot::SetNextLineStyle(ImVec4(0,0.5f,1,1));
+    ImPlot::PlotLineG("Ker Venturi", &ExtractPlotPoint, ker_venturi_points,size_);
+
+    // RGBA colors
+    ImPlot::SetNextLineStyle(ImVec4(0,0.3,1,1));
+    ImPlot::PlotLineG("Ker Inlet", &ExtractPlotPoint, ker_inlet_points,size_);
+
+    ImPlot::SetNextLineStyle(ImVec4(0,1,0,1));
+    ImPlot::PlotLineG("Ker Pintile", &ExtractPlotPoint, ker_pintile_points,size_);
+
+    ImPlot::EndPlot();
+  }
+
+  ImGui::SameLine();
+
+  ImPlot::SetNextAxisLimits(ImAxis_X1, now - kViewDuration, now, ImPlotCond_Always);
+  if (ImPlot::BeginPlot("Lox Pressures")) {
+    ImPlot::SetNextLineStyle(ImVec4(1,0.5f,1,1));
+    ImPlot::PlotLineG("Lox Tank", &ExtractPlotPoint, lox_tank_points, size_);
+
+    ImPlot::SetNextLineStyle(ImVec4(0,0.5f,1,1));
+    ImPlot::PlotLineG("Lox Venturi", &ExtractPlotPoint, lox_venturi_points,size_);
+
+    // RGBA colors
+    ImPlot::SetNextLineStyle(ImVec4(0,0.3,1,1));
+    ImPlot::PlotLineG("Lox Inlet", &ExtractPlotPoint, lox_inlet_points,size_);
+
+    ImPlot::SetNextLineStyle(ImVec4(0,1,0,1));
+    ImPlot::PlotLineG("Lox Pintile", &ExtractPlotPoint, lox_pintile_points,size_);
+
     ImPlot::EndPlot();
   }
 }

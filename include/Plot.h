@@ -24,10 +24,15 @@ class Plot : public glass::View {
 
   double start_time_;
 
-  ImPlotPoint actual_shooter_speed_[kMaxSize];
-  ImPlotPoint wanted_shooter_speed_[kMaxSize];
-  ImPlotPoint actual_hood_angle_[kMaxSize];
-  ImPlotPoint wanted_hood_angle_[kMaxSize];
+  ImPlotPoint ker_tank_points[kMaxSize];
+  ImPlotPoint ker_venturi_points[kMaxSize];
+  ImPlotPoint ker_inlet_points[kMaxSize];
+  ImPlotPoint ker_pintile_points[kMaxSize];
+
+  ImPlotPoint lox_tank_points[kMaxSize];
+  ImPlotPoint lox_venturi_points[kMaxSize];
+  ImPlotPoint lox_inlet_points[kMaxSize];
+  ImPlotPoint lox_pintile_points[kMaxSize];
 
   int size_ = 0;
   int offset_ = 0;
