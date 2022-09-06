@@ -17,7 +17,11 @@
 
 #include "Keys.h"
 
+#include <fmt/format.h>
+
 using namespace frc5190;
+
+static double last_time;
 
 ImPlotPoint ExtractPlotPoint(void* data, int idx) {
   return static_cast<ImPlotPoint*>(data)[idx];
@@ -25,11 +29,16 @@ ImPlotPoint ExtractPlotPoint(void* data, int idx) {
 
 Plot::Plot(std::shared_ptr<nt::NetworkTable> nt) : nt_{nt} {
   start_time_ = wpi::Now() * 1.0e-6;
+  last_time = wpi::Now() * 1e-6;
 }
 
 void Plot::Display() {
   // Get current time.
   double now = wpi::Now() * 1.0e-6 - start_time_;
+
+  double fps = 1.0 / (now - last_time);
+  last_time = now;
+  fmt::print("FPS: {}\n", fps);
 
   // Add data to plot series.
   ker_tank_points[size_] = ImPlotPoint{now, nt_->GetNumber("kerTankDucer", 0)};

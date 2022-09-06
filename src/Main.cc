@@ -22,18 +22,7 @@
 #include <networktables/TableEntryListener.h>
 #include <wpigui.h>
 
-#include "Climber.h"
-#include "Drivetrain.h"
-#include "General.h"
-#include "Hood.h"
-#include "Intake.h"
-#include "Keys.h"
 #include "Plot.h"
-#include "RobotState.h"
-#include "Shooter.h"
-#include "Superstructure.h"
-#include "Tuning.h"
-#include "Turret.h"
 
 using namespace frc5190;
 
@@ -41,18 +30,7 @@ namespace gui = wpi::gui;
 
 static std::unique_ptr<glass::WindowManager> window_manager_;
 
-// static glass::Window* general_;
-// static glass::Window* robot_state_;
-// static glass::Window* drivetrain_;
-// static glass::Window* turret_;
-// static glass::Window* shooter_;
-// static glass::Window* hood_;
-// static glass::Window* intake_;
-// static glass::Window* climber_;
-// static glass::Window* superstructure_;
-// static glass::Window* tuning_;
 static glass::Window* plot_;
-// static glass::Window* field_;
 
 static std::unique_ptr<glass::NetworkTablesModel> gNetworkTablesModel;
 static std::unique_ptr<glass::NetworkTablesSettings> gNetworkTablesSettings;
@@ -73,7 +51,7 @@ void Application(std::string_view save_dir) {
 
   // Create global NT instance.
   nt::NetworkTableInstance inst = nt::NetworkTableInstance::GetDefault();
-  inst.StartClient("localhost");
+  // inst.StartClient("localhost");
   // inst.StartClientTeam(5190);
 
   std::shared_ptr<nt::NetworkTable> robot_table = inst.GetTable("fcb");
@@ -112,31 +90,8 @@ void Application(std::string_view save_dir) {
   gNetworkTablesSettingsWindow->DisableRenamePopup();
   gui::AddLateExecute([] { gNetworkTablesSettingsWindow->Display(); });
 
-  // general_ = window_manager_->AddWindow("General",
-  //                                       std::make_unique<General>(robot_table));
-
-  // robot_state_ = window_manager_->AddWindow(
-  //     "Robot State", std::make_unique<RobotState>(robot_table));
-  // drivetrain_ = window_manager_->AddWindow(
-  //     "Drivetrain", std::make_unique<Drivetrain>(robot_table));
-  // turret_ = window_manager_->AddWindow("Turret",
-  //                                      std::make_unique<Turret>(robot_table));
-  // shooter_ = window_manager_->AddWindow("Shooter",
-  //                                       std::make_unique<Shooter>(robot_table));
-  // hood_ =
-  //     window_manager_->AddWindow("Hood", std::make_unique<Hood>(robot_table));
-  // intake_ = window_manager_->AddWindow("Intake",
-  //                                      std::make_unique<Intake>(robot_table));
-  // climber_ = window_manager_->AddWindow("Climber",
-  //                                       std::make_unique<Climber>(robot_table));
-  // superstructure_ = window_manager_->AddWindow(
-  //     "Superstructure", std::make_unique<Superstructure>(robot_table));
-  // tuning_ = window_manager_->AddWindow("Tuning",
-  //                                      std::make_unique<Tuning>(robot_table));
   plot_ =
       window_manager_->AddWindow("Plot", std::make_unique<Plot>(robot_table));
-  // field_ = window_manager_->AddWindow(
-  //     "Field", std::make_unique<glass::Field2DView>(&field_model));
 
   // Add menu bar.
   gui::AddLateExecute([&] {
