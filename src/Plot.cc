@@ -59,82 +59,54 @@ void Plot::Display() {
   // Construct plots.
   // ImPlot::SetNextAxesLimits(now - kViewDuration, now, -20, 20,
   //                           ImPlotCond_Always);
-  ImPlot::BeginSubplots("Ducers", 2, 2, ImVec2(-1, -1));
+  ImPlot::BeginSubplots("Ducers", 8, 2, ImVec2(-1, -1));
 
-  ImPlot::SetNextAxisLimits(ImAxis_X1, now - kViewDuration, now, ImPlotCond_Always);
-  if (ImPlot::BeginPlot("Kerosene Pressures")) {
-    ImPlot::SetNextLineStyle(ImVec4(1,0.5f,1,1));
-    ImPlot::PlotLineG("Ker Tank", &ExtractPlotPoint, ker_tank_points, size_);
+  for (int i = 0; i < 8; i++) {
+    ImPlot::SetNextAxisLimits(ImAxis_X1, now - kViewDuration, now,
+                              ImPlotCond_Always);
+    if (ImPlot::BeginPlot("Kerosene Pressures")) {
+      ImPlot::SetNextLineStyle(ImVec4(1, 0.5f, 1, 1));
+      ImPlot::PlotLineG("Ker Tank", &ExtractPlotPoint, ker_tank_points, size_);
 
-    ImPlot::SetNextLineStyle(ImVec4(0,0.5f,1,1));
-    ImPlot::PlotLineG("Ker Venturi", &ExtractPlotPoint, ker_venturi_points,size_);
+      ImPlot::SetNextLineStyle(ImVec4(0, 0.5f, 1, 1));
+      ImPlot::PlotLineG("Ker Venturi", &ExtractPlotPoint, ker_venturi_points,
+                        size_);
 
-    // RGBA colors
-    ImPlot::SetNextLineStyle(ImVec4(0,0.3,1,1));
-    ImPlot::PlotLineG("Ker Inlet", &ExtractPlotPoint, ker_inlet_points,size_);
+      // RGBA colors
+      ImPlot::SetNextLineStyle(ImVec4(0, 0.3, 1, 1));
+      ImPlot::PlotLineG("Ker Inlet", &ExtractPlotPoint, ker_inlet_points,
+                        size_);
 
-    ImPlot::SetNextLineStyle(ImVec4(0,1,0,1));
-    ImPlot::PlotLineG("Ker Pintile", &ExtractPlotPoint, ker_pintile_points,size_);
+      ImPlot::SetNextLineStyle(ImVec4(0, 1, 0, 1));
+      ImPlot::PlotLineG("Ker Pintile", &ExtractPlotPoint, ker_pintile_points,
+                        size_);
 
-    ImPlot::EndPlot();
+      ImPlot::EndPlot();
+    }
+
+
+    ImPlot::SetNextAxisLimits(ImAxis_X1, now - kViewDuration, now,
+                              ImPlotCond_Always);
+    if (ImPlot::BeginPlot("Lox Pressures")) {
+      ImPlot::SetNextLineStyle(ImVec4(1, 0.5f, 1, 1));
+      ImPlot::PlotLineG("Lox Tank", &ExtractPlotPoint, lox_tank_points, size_);
+
+      ImPlot::SetNextLineStyle(ImVec4(0, 0.5f, 1, 1));
+      ImPlot::PlotLineG("Lox Venturi", &ExtractPlotPoint, lox_venturi_points,
+                        size_);
+
+      // RGBA colors
+      ImPlot::SetNextLineStyle(ImVec4(0, 0.3, 1, 1));
+      ImPlot::PlotLineG("Lox Inlet", &ExtractPlotPoint, lox_inlet_points,
+                        size_);
+
+      ImPlot::SetNextLineStyle(ImVec4(0, 1, 0, 1));
+      ImPlot::PlotLineG("Lox Pintile", &ExtractPlotPoint, lox_pintile_points,
+                        size_);
+
+      ImPlot::EndPlot();
+    }
   }
 
-  ImGui::SameLine();
-
-  ImPlot::SetNextAxisLimits(ImAxis_X1, now - kViewDuration, now, ImPlotCond_Always);
-  if (ImPlot::BeginPlot("Lox Pressures")) {
-    ImPlot::SetNextLineStyle(ImVec4(1,0.5f,1,1));
-    ImPlot::PlotLineG("Lox Tank", &ExtractPlotPoint, lox_tank_points, size_);
-
-    ImPlot::SetNextLineStyle(ImVec4(0,0.5f,1,1));
-    ImPlot::PlotLineG("Lox Venturi", &ExtractPlotPoint, lox_venturi_points,size_);
-
-    // RGBA colors
-    ImPlot::SetNextLineStyle(ImVec4(0,0.3,1,1));
-    ImPlot::PlotLineG("Lox Inlet", &ExtractPlotPoint, lox_inlet_points,size_);
-
-    ImPlot::SetNextLineStyle(ImVec4(0,1,0,1));
-    ImPlot::PlotLineG("Lox Pintile", &ExtractPlotPoint, lox_pintile_points,size_);
-
-    ImPlot::EndPlot();
-  }
-
-  ImPlot::SetNextAxisLimits(ImAxis_X1, now - kViewDuration, now, ImPlotCond_Always);
-  if (ImPlot::BeginPlot("Kerosene Pressures")) {
-    ImPlot::SetNextLineStyle(ImVec4(1,0.5f,1,1));
-    ImPlot::PlotLineG("Ker Tank", &ExtractPlotPoint, ker_tank_points, size_);
-
-    ImPlot::SetNextLineStyle(ImVec4(0,0.5f,1,1));
-    ImPlot::PlotLineG("Ker Venturi", &ExtractPlotPoint, ker_venturi_points,size_);
-
-    // RGBA colors
-    ImPlot::SetNextLineStyle(ImVec4(0,0.3,1,1));
-    ImPlot::PlotLineG("Ker Inlet", &ExtractPlotPoint, ker_inlet_points,size_);
-
-    ImPlot::SetNextLineStyle(ImVec4(0,1,0,1));
-    ImPlot::PlotLineG("Ker Pintile", &ExtractPlotPoint, ker_pintile_points,size_);
-
-    ImPlot::EndPlot();
-  }
-
-  ImGui::SameLine();
-
-  ImPlot::SetNextAxisLimits(ImAxis_X1, now - kViewDuration, now, ImPlotCond_Always);
-  if (ImPlot::BeginPlot("Lox Pressures")) {
-    ImPlot::SetNextLineStyle(ImVec4(1,0.5f,1,1));
-    ImPlot::PlotLineG("Lox Tank", &ExtractPlotPoint, lox_tank_points, size_);
-
-    ImPlot::SetNextLineStyle(ImVec4(0,0.5f,1,1));
-    ImPlot::PlotLineG("Lox Venturi", &ExtractPlotPoint, lox_venturi_points,size_);
-
-    // RGBA colors
-    ImPlot::SetNextLineStyle(ImVec4(0,0.3,1,1));
-    ImPlot::PlotLineG("Lox Inlet", &ExtractPlotPoint, lox_inlet_points,size_);
-
-    ImPlot::SetNextLineStyle(ImVec4(0,1,0,1));
-    ImPlot::PlotLineG("Lox Pintile", &ExtractPlotPoint, lox_pintile_points,size_);
-
-    ImPlot::EndPlot();
-  }
   ImPlot::EndSubplots();
 }

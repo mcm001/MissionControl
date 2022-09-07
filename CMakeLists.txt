@@ -9,7 +9,8 @@ add_subdirectory(allwpilib)
 
 # Add our main executable.
 add_executable(MissionControl 
-    src/Main.cc src/Plot.cc src/MyHttpConnection.cpp src/WebSocketHandlers.cpp)
+    # src/Main.cc src/Plot.cc src/MyHttpConnection.cpp src/WebSocketHandlers.cpp)
+    src/Main_test.cc)
 
 # Set include directories.
 target_include_directories(MissionControl PRIVATE include)
