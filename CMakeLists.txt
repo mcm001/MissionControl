@@ -10,8 +10,7 @@ add_subdirectory(allwpilib)
 
 # Add our main executable.
 add_executable(MissionControl 
-    src/WebSocketClientTest.cpp src/WebSocketTest.cpp)
-    # src/Main_test.cc)
+    src/Main_test.cc)
 
 add_executable(MVP_Server src/MVP_Server.cpp) 
 target_link_libraries(MVP_Server PRIVATE wpinet)

@@ -30,22 +30,21 @@ int main() {
     loop->Stop();
     // FAIL() << "loop failed to terminate";
   });
-  failTimer->Start(uv::Timer::Time{5000});
+  failTimer->Start(uv::Timer::Time{50000});
   failTimer->Unreference();
 
+  serverPipe->Bind("127.0.0.1", 9002);
   serverPipe->Listen([&]() {
     auto conn = serverPipe->Accept();
     ws_server = WebSocket::CreateServer(*conn, "/test", "13");
     std::vector<uint8_t> data = {1, 2, 3, 4, 5};
     ws_server->open.connect([&](std::string_view) {
-      printf("Sending data!\n");
-      ws_server->SendText({{data}}, [](auto bufs, uv::Error) {
-        // This callback is called after the data's sent
+      printf("WS server got client!\n");
 
-        // ws->Terminate();
-        // ASSERT_FALSE(bufs.empty());
-        // ASSERT_EQ(bufs[0].base, reinterpret_cast<const char*>(data.data()));
-      });
+      ws_server->SendText({{data}}, [](auto bufs, uv::Error) { printf("Text sent!\n"); });
+    });
+    ws_server->text.connect([&](std::string_view data, bool) {
+      std::cout << "Got text: " << data << std::endl;
     });
   });
 

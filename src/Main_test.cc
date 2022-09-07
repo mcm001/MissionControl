@@ -44,11 +44,11 @@ int main() {
     // Our callback should be called when the TCP connection opens
     tcp->Connect(pipeName, port, [&] {
       printf("Got TCP connection!\n");
-      auto ws = wpi::WebSocket::CreateClient(
-          *tcp.get(), "", fmt::format("{}:{}", pipeName, port));
 
-      ws->open.connect([&tcp, &ws](std::string_view) {
-        printf("Opened!\n");
+      auto ws = wpi::WebSocket::CreateClient(*tcp.get(), "/test", "13");
+
+      ws->open.connect([&](std::string_view) {
+        printf("Opened WS connection!\n");
         SendWsText(ws, {{"command", "SET_STATE"}, {"newState", "Foobar"}});
       });
     });
