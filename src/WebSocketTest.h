@@ -10,14 +10,13 @@
 
 #include <wpi/span.h>
 
-#include "gtest/gtest.h"
 #include "wpinet/uv/Loop.h"
 #include "wpinet/uv/Pipe.h"
 #include "wpinet/uv/Timer.h"
 
 namespace wpi {
 
-class WebSocketTest : public ::testing::Test {
+class WebSocketTest {
  public:
   static const char* pipeName;
 
@@ -30,26 +29,16 @@ class WebSocketTest : public ::testing::Test {
 
     serverPipe->Bind(pipeName);
 
-#if 0
-    auto debugTimer = uv::Timer::Create(loop);
-    debugTimer->timeout.connect([this] {
-      std::printf("Active handles:\n");
-      uv_print_active_handles(loop->GetRaw(), stdout);
-    });
-    debugTimer->Start(uv::Timer::Time{100}, uv::Timer::Time{100});
-    debugTimer->Unreference();
-#endif
-
     auto failTimer = uv::Timer::Create(loop);
     failTimer->timeout.connect([this] {
       loop->Stop();
-      FAIL() << "loop failed to terminate";
+      // FAIL() << "loop failed to terminate";
     });
     failTimer->Start(uv::Timer::Time{1000});
     failTimer->Unreference();
   }
 
-  ~WebSocketTest() override {
+  ~WebSocketTest() {
     Finish();
   }
 

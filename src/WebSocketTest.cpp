@@ -10,6 +10,8 @@
 
 #include "wpinet/HttpParser.h"
 
+#include <unistd.h>
+
 namespace wpi {
 
 #ifdef _WIN32
@@ -100,6 +102,7 @@ void WebSocketTest::AdjustMasking(span<uint8_t> message) {
   }
 }
 
+/*
 TEST_F(WebSocketTest, CreateClientBasic) {
   int gotHost = 0;
   int gotUpgrade = 0;
@@ -376,5 +379,6 @@ TEST_F(WebSocketTest, CreateServerBadVersion) {
   ASSERT_EQ(gotVersion, 1);
   ASSERT_EQ(gotUpgrade, 1);
 }
+*/
 
 }  // namespace wpi
