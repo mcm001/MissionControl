@@ -17,16 +17,20 @@ void Finish() {
 
 int main() {
   loop = uv::Loop::Create();
+
+  loop->error.connect(
+      [](uv::Error err) { fmt::print(stderr, "uv ERROR: {}\n", err.str()); });
+
   auto tcp = uv::Tcp::Create(loop);
-  const char* pipeName = "localhost:9002";
+  const char* pipeName = "localhost"; const int port = 9002;
 
   // Our callback should be called when the TCP connection opens
-  tcp->Connect(pipeName, [&] {
-    auto ws = WebSocket::CreateClient(*tcp, "/test", pipeName);
+  tcp->Connect(pipeName, port, [&] {
+    auto ws = wpi::WebSocket::CreateClient(*tcp, "/test", pipeName);
     ws->closed.connect([&](uint16_t code, std::string_view reason) {
       Finish();
       if (code != 1005 && code != 1006) {
-        FAIL() << "Code: " << code << " Reason: " << reason;
+        // FAIL() << "Code: " << code << " Reason: " << reason;
       }
     });
     ws->open.connect([&](std::string_view protocol) {
@@ -34,4 +38,8 @@ int main() {
       Finish();
     });
   });
+
+  printf("Running loop\n");
+  loop->Run();
+  printf("Loop ran!\n");
 }
