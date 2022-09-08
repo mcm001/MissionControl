@@ -24,6 +24,9 @@ add_executable(MissionControl
 add_executable(MVP_Server src/MVP_Server.cpp) 
 target_link_libraries(MVP_Server PRIVATE wpiutil  wpinet GTest::gtest_main)
 
+add_executable(MVP_Client src/MVP_Client.cpp) 
+target_link_libraries(MVP_Client PRIVATE wpiutil  wpinet)
+
 # Set include directories.
 target_include_directories(MissionControl PRIVATE include)
 
