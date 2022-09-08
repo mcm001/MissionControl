@@ -23,7 +23,7 @@ add_executable(MissionControl
     
 
 add_executable(MVP_Server src/MVP_Server.cpp) 
-target_link_libraries(MVP_Server PRIVATE wpinet)
+target_link_libraries(MVP_Server PRIVATE wpiutil  wpinet GTest::gtest_main)
 
 # Set include directories.
 target_include_directories(MissionControl PRIVATE include)
@@ -39,4 +39,4 @@ endif()
 target_link_libraries(MissionControl PRIVATE libglassnt libglass ntcore wpimath wpiutil wpigui imgui GTest::gtest_main)
 
 include(GoogleTest)
-gtest_discover_tests(MissionControl)
+gtest_discover_tests(MVP_Server)
