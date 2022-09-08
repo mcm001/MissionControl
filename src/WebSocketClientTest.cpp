@@ -13,8 +13,6 @@
 #include "wpinet/HttpParser.h"
 #include "wpinet/raw_uv_ostream.h"
 
-#include "fmt/format.h"
-
 namespace wpi {
 
 class WebSocketClientTest : public WebSocketTest {
@@ -75,7 +73,7 @@ class WebSocketClientTest : public WebSocketTest {
           if (req.HasError()) {
             Finish();
           }
-          // ASSERT_EQ(req.GetError(), HPE_OK) << http_errno_name(req.GetError());
+          ASSERT_EQ(req.GetError(), HPE_OK) << http_errno_name(req.GetError());
           if (data.empty()) {
             return;
           }
@@ -94,7 +92,6 @@ class WebSocketClientTest : public WebSocketTest {
   std::string mockProtocol;
   bool serverHeadersDone = false;
   std::function<void()> connected;
-
 };
 
 /*
@@ -234,8 +231,9 @@ TEST_F(WebSocketClientTest, ProtocolReqNotResp) {
 // Send and receive data.  Most of these cases are tested in
 // WebSocketServerTest, so only spot check differences like masking.
 //
-*/
-class WebSocketClientDataTest : public WebSocketClientTest {
+
+class WebSocketClientDataTest : public WebSocketClientTest,
+                                public ::testing::WithParamInterface<size_t> {
  public:
   WebSocketClientDataTest() {
     clientPipe->Connect(pipeName, [&] {
@@ -248,20 +246,21 @@ class WebSocketClientDataTest : public WebSocketClientTest {
 
   std::function<void()> setupWebSocket;
   std::shared_ptr<WebSocket> ws;
-
-  void Main();
 };
 
-void WebSocketClientDataTest::Main() {
+INSTANTIATE_TEST_SUITE_P(WebSocketClientDataTests, WebSocketClientDataTest,
+                         ::testing::Values(0, 1, 125, 126, 65535, 65536));
+
+TEST_P(WebSocketClientDataTest, SendBinary) {
   int gotCallback = 0;
-  std::vector<uint8_t> data({0u,1u,125u,126u,120,0u, 0x03u});
+  std::vector<uint8_t> data(GetParam(), 0x03u);
   setupWebSocket = [&] {
     ws->open.connect([&](std::string_view) {
       ws->SendBinary({{data}}, [&](auto bufs, uv::Error) {
         ++gotCallback;
         ws->Terminate();
-        // ASSERT_FALSE(bufs.empty());
-        // ASSERT_EQ(bufs[0].base, reinterpret_cast<const char*>(data.data()));
+        ASSERT_FALSE(bufs.empty());
+        ASSERT_EQ(bufs[0].base, reinterpret_cast<const char*>(data.data()));
       });
     });
   };
@@ -270,12 +269,9 @@ void WebSocketClientDataTest::Main() {
 
   auto expectData = BuildMessage(0x02, true, true, data);
   AdjustMasking(wireData);
-  // ASSERT_EQ(wireData, expectData);
-  // ASSERT_EQ(gotCallback, 1);
-  fmt::print("Got callback {}\n", gotCallback);
+  ASSERT_EQ(wireData, expectData);
+  ASSERT_EQ(gotCallback, 1);
 }
-
-/*
 
 TEST_P(WebSocketClientDataTest, ReceiveBinary) {
   int gotCallback = 0;
@@ -324,8 +320,3 @@ TEST_P(WebSocketClientDataTest, ReceiveMasked) {
 */
 
 }  // namespace wpi
-
-int main() {
-  wpi::WebSocketClientDataTest().Main();
-  return 0;
-}

@@ -10,8 +10,6 @@
 
 #include "wpinet/HttpParser.h"
 
-#include <unistd.h>
-
 namespace wpi {
 
 #ifdef _WIN32

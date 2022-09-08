@@ -8,9 +8,19 @@ project(MissionControl)
 # Add the allwpilib subdirectory to pull in wpigui, imgui, et al.
 add_subdirectory(allwpilib)
 
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG release-1.12.1
+)
+FetchContent_MakeAvailable(googletest)
+
 # Add our main executable.
 add_executable(MissionControl 
-    src/Main_test.cc)
+    # src/Main_test.cc)
+    src/WebSocketTest.cpp src/WebSocketClientTest.cpp src/WebSocketServerTest.cpp)
+    
 
 add_executable(MVP_Server src/MVP_Server.cpp) 
 target_link_libraries(MVP_Server PRIVATE wpinet)
@@ -26,4 +36,7 @@ elseif(APPLE)
 elseif(UNIX)
     set_target_properties(MissionControl PROPERTIES LINK_FLAGS "-lX11")
 endif()
-target_link_libraries(MissionControl PRIVATE libglassnt libglass ntcore wpimath wpiutil wpigui imgui)
+target_link_libraries(MissionControl PRIVATE libglassnt libglass ntcore wpimath wpiutil wpigui imgui GTest::gtest_main)
+
+include(GoogleTest)
+gtest_discover_tests(MissionControl)
