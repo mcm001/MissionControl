@@ -37,7 +37,7 @@ class WebSocketTest {
     failTimer->Start(uv::Timer::Time{1000});
     failTimer->Unreference();
 
-    resp.headersComplete.connect([this](bool) { headersDone = true; });
+    resp.headersComplete.connect([this](bool) { printf("Client got headers\n"); headersDone = true; });
 
     clientPipe->Connect(pipeName, port, [this]() {
       clientPipe->StartRead();
@@ -46,6 +46,7 @@ class WebSocketTest {
         if (!headersDone) {
           data = resp.Execute(data);
           if (resp.HasError()) {
+            printf("Client data error!");
             Finish();
           }
           // ASSERT_EQ(resp.GetError(), HPE_OK)
@@ -54,7 +55,7 @@ class WebSocketTest {
             return;
           }
         }
-        std::cout << "DATA:\n";
+        std::cout << "Data from server:\n";
         for (auto i : data) {
           std::cout << data;
         }
@@ -103,22 +104,30 @@ int main() {
   WebSocketTest wsTest;
 
   int gotCallback = 0;
-  std::string str = "Hello_tcp";
-  std::vector<uint8_t> data = {str.begin(), str.end()};
+  // std::string str = "asdfasdfasdf";
+  // std::vector<uint8_t> data = {str.begin(), str.end()};
   wsTest.setupWebSocket = [&] {
     wsTest.ws->open.connect([&](std::string_view) {
-      wsTest.ws->SendText({{data}}, [&](auto bufs, uv::Error) {
-        ++gotCallback;
-        wsTest.ws->Terminate();
-        // ASSERT_FALSE(bufs.empty());
-        // ASSERT_EQ(bufs[0].base, reinterpret_cast<const char*>(data.data()));
+      printf("WS client connection opened!\n");
+      wsTest.ws->text.connect([&](std::string_view text, bool) {
+        printf("Text from server: %s\n", std::string(text).c_str());
       });
+      wsTest.ws->binary.connect([&](wpi::span<const uint8_t> data, bool) {
+        printf("Binary from server\n");
+      });
+
+      // wsTest.ws->SendText({{data}}, [&](auto bufs, uv::Error) {
+      //   ++gotCallback;
+      //   // wsTest.ws->Terminate();
+      //   // ASSERT_FALSE(bufs.empty());
+      //   // ASSERT_EQ(bufs[0].base, reinterpret_cast<const char*>(data.data()));
+      // });
     });
   };
 
   wsTest.loop->Run();
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
   // ASSERT_EQ(gotCallback, 1);
   return (gotCallback == 1);

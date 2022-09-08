@@ -86,13 +86,15 @@ void WebSocketTest::SetUpTestCase() {
 
 TEST_F(WebSocketTest, SendText) {
   int gotCallback = 0;
-  std::string str = "Hello_tcp";
+  std::string str = "asdf";
   std::vector<uint8_t> data = {str.begin(), str.end()};
   setupWebSocket = [&] {
     ws->open.connect([&](std::string_view) {
+      printf("WS Server got client!\n");
       ws->SendText({{data}}, [&](auto bufs, uv::Error) {
+        printf("WS Server sent text!\n");
         ++gotCallback;
-        ws->Terminate();
+        // ws->Terminate();
         ASSERT_FALSE(bufs.empty());
         ASSERT_EQ(bufs[0].base, reinterpret_cast<const char*>(data.data()));
       });
