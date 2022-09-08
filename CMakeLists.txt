@@ -18,8 +18,7 @@ FetchContent_MakeAvailable(googletest)
 
 # Add our main executable.
 add_executable(MissionControl 
-    # src/Main_test.cc)
-    src/WebSocketTest.cpp src/WebSocketClientTest.cpp src/WebSocketServerTest.cpp)
+    src/Main_test.cc)
     
 
 add_executable(MVP_Server src/MVP_Server.cpp) 
