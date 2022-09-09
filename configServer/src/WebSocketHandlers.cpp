@@ -20,24 +20,9 @@
 #include <wpinet/uv/Pipe.h>
 #include <wpinet/uv/Process.h>
 
-#include "SystemStatus.h"
-
-#define EXEC_HOME  ""
-#define APP_UID 1000
-#define APP_GID 1000
-#define NODE_HOME ""
-
 namespace uv = wpi::uv;
 
 extern bool romi;
-
-struct WebSocketData {
-  bool visionLogEnabled = false;
-  bool romiLogEnabled = false;
-
-  // Connection between the systemstatus status signal and our sendWSText function
-  wpi::sig::ScopedConnection sysStatusConn;
-};
 
 static void SendWsText(wpi::WebSocket& ws, const wpi::json& j) {
   wpi::SmallVector<uv::Buffer, 4> toSend;
@@ -48,22 +33,8 @@ static void SendWsText(wpi::WebSocket& ws, const wpi::json& j) {
   });
 }
 
-void InitWs(wpi::WebSocket& ws) {
-  // set ws data, which can be later gotten with ws.GetData();
-  auto data = std::make_shared<WebSocketData>();
-  ws.SetData(data);
-
-  // send initial system status and hook up system status updates
-  auto sysStatus = SystemStatus::GetInstance();
-
-  // Set up ws to send the system status when the systemstatus signal's emitted
-  auto statusFunc = [&ws](const wpi::json& j) { SendWsText(ws, j); };
-  statusFunc(sysStatus->GetStatusJson());
-  data->sysStatusConn = sysStatus->status.connect_connection(statusFunc);
-}
-
 void ProcessWsText(wpi::WebSocket& ws, std::string_view msg) {
-  fmt::print(stderr, "ws: '{}'\n", msg);
+  fmt::print(stderr, "ws text: '{}'\n", msg);
 
   // parse
   wpi::json j;
@@ -85,6 +56,5 @@ void ProcessWsText(wpi::WebSocket& ws, std::string_view msg) {
 }
 
 void ProcessWsBinary(wpi::WebSocket& ws, wpi::span<const uint8_t> msg) {
-  auto d = ws.GetData<WebSocketData>();
-  fmt::print(stderr,"ws: binary");
+  fmt::print(stderr,"ws binary: TODO");
 }

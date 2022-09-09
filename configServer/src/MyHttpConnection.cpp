@@ -42,7 +42,8 @@ MyHttpConnection::MyHttpConnection(std::shared_ptr<wpi::uv::Stream> stream)
     m_ws->open.connect_extended([self, s = m_ws.get()](auto conn, auto) {
       fmt::print(stderr, "{}", "websocket connected\n");
       self->SendText("Hello, world!");
-      InitWs(*s);
+
+      // TODO what does this do?
       conn.disconnect();  // one-shot
     });
     m_ws->text.connect(

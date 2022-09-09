@@ -13,7 +13,6 @@ namespace wpi {
 class WebSocket;
 }  // namespace wpi
 
-void InitWs(wpi::WebSocket& ws);
 void ProcessWsText(wpi::WebSocket& ws, std::string_view msg);
 void ProcessWsBinary(wpi::WebSocket& ws, wpi::span<const uint8_t> msg);
 

@@ -18,7 +18,6 @@
 #include <wpinet/uv/Udp.h>
 
 #include "MyHttpConnection.h"
-#include "SystemStatus.h"
 
 namespace uv = wpi::uv;
 
@@ -40,8 +39,10 @@ int main(int argc, char* argv[]) {
   // bind to listen address and port
   tcp->Bind("", port);
 
+  auto timer2 = uv::Timer::Create(loop);
+
   // when we get a connection, accept it and start reading
-  tcp->connection.connect([srv = tcp.get()] {
+  tcp->connection.connect([srv = tcp.get(), timer2] {
     auto tcp = srv->Accept();
     if (!tcp) return;
     fmt::print(stderr, "{}", "Got a connection\n");
@@ -54,20 +55,16 @@ int main(int argc, char* argv[]) {
 
     auto conn = std::make_shared<MyHttpConnection>(tcp);
     tcp->SetData(conn);
+
+    timer2->Start(std::chrono::seconds(1), std::chrono::seconds(1));
+    timer2->timeout.connect([conn] {
+      conn->SendText("Foobar!");
+    });
   });
 
   // start listening for incoming connections
   tcp->Listen();
-
   fmt::print(stderr, "Listening on port {}\n", port);
-
-  // start timer to collect system and vision status
-  auto timer = uv::Timer::Create(loop);
-  timer->Start(std::chrono::seconds(1), std::chrono::seconds(1));
-  timer->timeout.connect([&loop] {
-    SystemStatus::GetInstance()->UpdateAll();
-  });
-
 
   // run loop
   loop->Run();

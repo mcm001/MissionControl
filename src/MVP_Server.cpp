@@ -26,14 +26,8 @@ public:
 
       void ProcessRequest() override {}
 
-    void InitWs(wpi::WebSocket &ws);
     wpi::WebSocketServerHelper m_websocketHelper;
 };
-
-void MyHttpConnection::InitWs(wpi::WebSocket &ws)
-{
-    printf("Init WS!");
-}
 
 MyHttpConnection::MyHttpConnection(std::shared_ptr<wpi::uv::Stream> stream)
     : HttpServerConnection(stream), m_websocketHelper(m_request)
@@ -57,7 +51,6 @@ MyHttpConnection::MyHttpConnection(std::shared_ptr<wpi::uv::Stream> stream)
     // Pass self to delay destruction until this callback happens
     ws->open.connect_extended([self, s = ws.get()](auto conn, auto) {
       fmt::print(stderr, "{}", "websocket connected\n");
-      self->InitWs(*s);
       conn.disconnect();  // one-shot
     });
     ws->text.connect([s = ws.get()](auto msg, bool) {
