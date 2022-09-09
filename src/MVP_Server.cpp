@@ -25,9 +25,6 @@ public:
     ~MyHttpConnection() = default;
 
       void ProcessRequest() override {}
-    //   void SendFileResponse(int code, std::string_view codeText,
-    //                         std::string_view contentType, std::string_view filename,
-    //                         std::string_view extraHeader = {});
 
     void InitWs(wpi::WebSocket &ws);
     wpi::WebSocketServerHelper m_websocketHelper;

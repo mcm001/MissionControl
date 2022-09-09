@@ -17,13 +17,13 @@ class MyHttpConnection : public wpi::HttpServerConnection,
  public:
   explicit MyHttpConnection(std::shared_ptr<wpi::uv::Stream> stream);
 
+  void SendText(std::string_view text);
+
  protected:
-  void ProcessRequest() override;
-  void SendFileResponse(int code, std::string_view codeText,
-                        std::string_view contentType, std::string_view filename,
-                        std::string_view extraHeader = {});
+  void ProcessRequest() override {}
 
   wpi::WebSocketServerHelper m_websocketHelper;
+  std::shared_ptr<wpi::WebSocket> m_ws;
 };
 
 #endif  // RPICONFIGSERVER_MYHTTPCONNECTION_H_

@@ -23,6 +23,8 @@ void SystemStatus::UpdateAll() {
   UpdateCpu();
   UpdateNetwork();
   UpdateTemp();
+  
+  // Emit status/writable signals
   status(GetStatusJson());
   writable(GetWritable());
 }

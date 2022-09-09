@@ -7,7 +7,7 @@ socket = new WebSocket(serverUrl, 'frcvision');
 
 // Connection opened
 socket.addEventListener('open', (event) => {
-    socket.send('Hello Server!');
+    socket.send('{}');
 });
 
 // Listen for messages
