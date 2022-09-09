@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
   tcp->connection.connect([srv = tcp.get(), timer2] {
     auto tcp = srv->Accept();
     if (!tcp) return;
-    fmt::print(stderr, "{}", "Got a connection\n");
+    fmt::print(stderr, "{}", "Got a TCP connection\n");
 
     // Close on error
     tcp->error.connect([s = tcp.get()](wpi::uv::Error err) {

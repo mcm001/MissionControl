@@ -1,141 +1,91 @@
 #include <vector>
 
 #include <wpi/span.h>
-
 #include "wpinet/uv/Loop.h"
+#include "wpinet/EventLoopRunner.h"
+#include <wpi/Logger.h>
+#include <wpinet/ParallelTcpConnector.h>
 #include "wpinet/uv/Pipe.h"
 #include "wpinet/uv/Tcp.h"
 #include "wpinet/uv/Timer.h"
-
-#include <wpinet/WebSocket.h>  // NOLINT(build/include_order)
+#include <wpinet/WebSocket.h>
 #include <wpi/StringExtras.h>
+#include <wpinet/uv/Process.h>
 #include "wpinet/HttpParser.h"
-
 #include <iostream>
+#include <wpinet/uv/util.h>
 
+using namespace wpi;
 
-namespace wpi {
+static constexpr uv::Timer::Time kReconnectRate{1000};
+static constexpr uv::Timer::Time kWebsocketHandshakeTimeout{500};
 
-namespace uv = wpi::uv;
+wpi::EventLoopRunner m_loopRunner;
+std::shared_ptr<wpi::ParallelTcpConnector> m_parallelConnect;
+std::shared_ptr<uv::Timer> m_sendPeriodicTimer;
+wpi::Logger m_logger;
+bool isConnected;
 
-class WebSocketTest {
- public:
-  static const char* pipeName;
-  static const int port = 9002;
+void WsConnected(wpi::WebSocket& ws, uv::Tcp& tcp) {
+  m_parallelConnect->Succeeded(tcp);
 
-  static void SetUpTestCase();
+  std::string ip;
+  unsigned int port;
+  uv::AddrToName(tcp.GetPeer(), &ip, &port);
 
-  WebSocketTest() {
-    loop = uv::Loop::Create();
-    clientPipe = uv::Tcp::Create(loop);
+  fmt::format("CONNECTED NT4 to {} port {}\n", ip, port);
 
-    auto failTimer = uv::Timer::Create(loop);
-    failTimer->timeout.connect([this] {
-      loop->Stop();
-      // FAIL() << "loop failed to terminate";
-    });
-    failTimer->Start(uv::Timer::Time{1000});
-    failTimer->Unreference();
+  isConnected = true;
 
-    resp.headersComplete.connect([this](bool) { printf("Client got headers\n"); headersDone = true; });
-
-    clientPipe->Connect(pipeName, port, [this]() {
-      printf("Client TCP open!");
-      ws = WebSocket::CreateClient(*clientPipe, "foo", pipeName);
-      ws->open.connect([&](std::string_view prot) {
-        printf("Client WS open! protocol: %s\n", std::string(prot).c_str());
-      });
-
-      // clientPipe->StartRead();
-      // clientPipe->data.connect([this](uv::Buffer& buf, size_t size) {
-      //   std::string_view data{buf.base, size};
-      //   if (!headersDone) {
-      //     data = resp.Execute(data);
-      //     if (resp.HasError()) {
-      //       printf("Client data error!");
-      //       Finish();
-      //     }
-      //     // ASSERT_EQ(resp.GetError(), HPE_OK)
-      //         // << http_errno_name(resp.GetError());
-      //     if (data.empty()) {
-      //       return;
-      //     }
-      //   }
-      //   std::cout << "Data from server:\n";
-      //   for (auto i : data) {
-      //     std::cout << data;
-      //   }
-      //   std::cout << std::endl;
-      //   wireData.insert(wireData.end(), data.begin(), data.end());
-      //   if (handleData) {
-      //     handleData(data);
-      //   }
-      // });
-      clientPipe->end.connect([this]() { Finish(); });
-    });
-  }
-
-  ~WebSocketTest() {
-    Finish();
-  }
-
-  void Finish() {
-    loop->Walk([](uv::Handle& it) { it.Close(); });
-  }
-
-  std::shared_ptr<uv::Loop> loop;
-  std::shared_ptr<uv::Tcp> clientPipe;
-  std::function<void()> setupWebSocket;
-  std::function<void(std::string_view)> handleData;
-  std::vector<uint8_t> wireData;
-  std::shared_ptr<WebSocket> ws;
-  HttpParser resp{HttpParser::kResponse};
-  bool headersDone = false;
-};
-
-
-const char* WebSocketTest::pipeName = "127.0.0.1";
-
-void WebSocketTest::SetUpTestCase() {
-// #ifndef _WIN32
-//   unlink(pipeName);
-// #endif
+  ws.text.connect([](std::string_view data, bool) {
+    printf("Client got text\n");
+  });
+  ws.binary.connect([](wpi::span<const uint8_t> data, bool) {
+    printf("Client got binary\n");
+  });
 }
 
+void TcpConnected(uv::Tcp& tcp) {
+  // We get this printout twice
+  printf("Got tcp!\n");
 
-}  // namespace wpi
+  tcp.SetNoDelay(true);
+  // Start the WS client
+  wpi::WebSocket::ClientOptions options;
+  options.handshakeTimeout = kWebsocketHandshakeTimeout;
+  auto m_id = "";
+  auto ws =
+      wpi::WebSocket::CreateClient(tcp, "", "ws://127.0.0.1:9002",
+                                   {{"frcvision"}}, options);
+  
+  // Open never seems to get called
+  ws->open.connect([&tcp, ws = ws.get()](std::string_view) {
+    printf("WS opened!\n");
+    WsConnected(*ws, tcp);
+  });
+
+  // Closed does get called twice, after the handshake timeout we set above has passed?
+  ws->closed.connect([](int, std::string_view){
+    printf("WS closed!\n");
+    isConnected = false;
+  });
+}
 
 int main() {
-  using namespace wpi;
-  WebSocketTest wsTest;
+  uv::Process::DisableStdioInheritance();
 
-  int gotCallback = 0;
-  // std::string str = "asdfasdfasdf";
-  // std::vector<uint8_t> data = {str.begin(), str.end()};
-  wsTest.setupWebSocket = [&] {
-    wsTest.ws->open.connect([&](std::string_view) {
-      printf("WS client connection opened!\n");
-      wsTest.ws->text.connect([&](std::string_view text, bool) {
-        printf("Text from server: %s\n", std::string(text).c_str());
-      });
-      wsTest.ws->binary.connect([&](wpi::span<const uint8_t> data, bool) {
-        printf("Binary from server\n");
-      });
+  // No errors printed, good idea to have tho
+  m_loopRunner.GetLoop()->error.connect(
+      [](uv::Error err) { fmt::print(stderr, "uv ERROR: {}\n", err.str()); });
 
-      // wsTest.ws->SendText({{data}}, [&](auto bufs, uv::Error) {
-      //   ++gotCallback;
-      //   // wsTest.ws->Terminate();
-      //   // ASSERT_FALSE(bufs.empty());
-      //   // ASSERT_EQ(bufs[0].base, reinterpret_cast<const char*>(data.data()));
-      // });
-    });
-  };
+  m_loopRunner.ExecAsync([&](uv::Loop& loop) {
+    m_parallelConnect = wpi::ParallelTcpConnector::Create(
+        loop, kReconnectRate, m_logger,
+        [](uv::Tcp& tcp) { TcpConnected(tcp); });
 
-  wsTest.loop->Run();
+    const std::pair<std::string, unsigned int> server = {"127.0.0.1", 9002};
+    m_parallelConnect->SetServers(std::array{server});
+  });
 
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-
-  // ASSERT_EQ(gotCallback, 1);
-  return (gotCallback == 1);
 }
-// int main() {}
