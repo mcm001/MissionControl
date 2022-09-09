@@ -17,8 +17,8 @@
 
 using namespace wpi;
 
-static constexpr uv::Timer::Time kReconnectRate{1000};
-static constexpr uv::Timer::Time kWebsocketHandshakeTimeout{500};
+static constexpr uv::Timer::Time kReconnectRate{100};
+static constexpr uv::Timer::Time kWebsocketHandshakeTimeout{50};
 
 wpi::EventLoopRunner m_loopRunner;
 std::shared_ptr<wpi::ParallelTcpConnector> m_parallelConnect;
@@ -33,12 +33,12 @@ void WsConnected(wpi::WebSocket& ws, uv::Tcp& tcp) {
   unsigned int port;
   uv::AddrToName(tcp.GetPeer(), &ip, &port);
 
-  fmt::format("CONNECTED NT4 to {} port {}\n", ip, port);
+  fmt::print("CONNECTED NT4 to {} port {}\n", ip, port);
 
   isConnected = true;
 
   ws.text.connect([](std::string_view data, bool) {
-    printf("Client got text\n");
+    printf("Client got text: %s\n", std::string(data).c_str());
   });
   ws.binary.connect([](wpi::span<const uint8_t> data, bool) {
     printf("Client got binary\n");
@@ -55,8 +55,8 @@ void TcpConnected(uv::Tcp& tcp) {
   options.handshakeTimeout = kWebsocketHandshakeTimeout;
   auto m_id = "";
   auto ws =
-      wpi::WebSocket::CreateClient(tcp, "", "ws://127.0.0.1:9002",
-                                   {{"frcvision"}}, options);
+      wpi::WebSocket::CreateClient(tcp, "/", "ws://127.0.0.1:9002",
+                                   {{"frcvision", "13"}}, options);
   
   // Open never seems to get called
   ws->open.connect([&tcp, ws = ws.get()](std::string_view) {
@@ -65,9 +65,10 @@ void TcpConnected(uv::Tcp& tcp) {
   });
 
   // Closed does get called twice, after the handshake timeout we set above has passed?
-  ws->closed.connect([](int, std::string_view){
+  ws->closed.connect([&](int, std::string_view){
     printf("WS closed!\n");
     isConnected = false;
+    m_parallelConnect->Disconnected();
   });
 }
 
@@ -87,5 +88,5 @@ int main() {
     m_parallelConnect->SetServers(std::array{server});
   });
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(20000));
 }
