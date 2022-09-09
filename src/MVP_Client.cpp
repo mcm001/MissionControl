@@ -40,31 +40,37 @@ class WebSocketTest {
     resp.headersComplete.connect([this](bool) { printf("Client got headers\n"); headersDone = true; });
 
     clientPipe->Connect(pipeName, port, [this]() {
-      clientPipe->StartRead();
-      clientPipe->data.connect([this](uv::Buffer& buf, size_t size) {
-        std::string_view data{buf.base, size};
-        if (!headersDone) {
-          data = resp.Execute(data);
-          if (resp.HasError()) {
-            printf("Client data error!");
-            Finish();
-          }
-          // ASSERT_EQ(resp.GetError(), HPE_OK)
-              // << http_errno_name(resp.GetError());
-          if (data.empty()) {
-            return;
-          }
-        }
-        std::cout << "Data from server:\n";
-        for (auto i : data) {
-          std::cout << data;
-        }
-        std::cout << std::endl;
-        wireData.insert(wireData.end(), data.begin(), data.end());
-        if (handleData) {
-          handleData(data);
-        }
+      printf("Client TCP open!");
+      ws = WebSocket::CreateClient(*clientPipe, "foo", pipeName);
+      ws->open.connect([&](std::string_view prot) {
+        printf("Client WS open! protocol: %s\n", std::string(prot).c_str());
       });
+
+      // clientPipe->StartRead();
+      // clientPipe->data.connect([this](uv::Buffer& buf, size_t size) {
+      //   std::string_view data{buf.base, size};
+      //   if (!headersDone) {
+      //     data = resp.Execute(data);
+      //     if (resp.HasError()) {
+      //       printf("Client data error!");
+      //       Finish();
+      //     }
+      //     // ASSERT_EQ(resp.GetError(), HPE_OK)
+      //         // << http_errno_name(resp.GetError());
+      //     if (data.empty()) {
+      //       return;
+      //     }
+      //   }
+      //   std::cout << "Data from server:\n";
+      //   for (auto i : data) {
+      //     std::cout << data;
+      //   }
+      //   std::cout << std::endl;
+      //   wireData.insert(wireData.end(), data.begin(), data.end());
+      //   if (handleData) {
+      //     handleData(data);
+      //   }
+      // });
       clientPipe->end.connect([this]() { Finish(); });
     });
   }
