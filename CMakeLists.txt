@@ -18,8 +18,7 @@ FetchContent_MakeAvailable(googletest)
 
 # Add our main executable.
 add_executable(MissionControl 
-    src/Main_test.cc)
-    
+    src/Main.cc src/Plot.cc)
 
 add_executable(MVP_Server src/MVP_Server.cpp) 
 target_link_libraries(MVP_Server PRIVATE wpiutil wpinet GTest::gtest_main)

@@ -83,7 +83,7 @@ void WebSocketClient::TcpConnected(uv::Tcp& tcp) {
       wpi::WebSocket::CreateClient(tcp, "/", "ws://127.0.0.1:9002",
                                    {{"frcvision", "13"}}, options);
   
-  ws->open.connect([&tcp, ws = ws.get()](std::string_view) {
+  ws->open.connect([&tcp, ws = ws.get(), this](std::string_view) {
     printf("WS opened!\n");
     WsConnected(*ws, tcp);
   });
@@ -99,10 +99,10 @@ WebSocketClient::WebSocketClient() {
   m_loopRunner.GetLoop()->error.connect(
       [](uv::Error err) { fmt::print(stderr, "uv ERROR: {}\n", err.str()); });
 
-  m_loopRunner.ExecAsync([&](uv::Loop& loop) {
+  m_loopRunner.ExecAsync([&, this](uv::Loop& loop) {
     m_parallelConnect = wpi::ParallelTcpConnector::Create(
         loop, kReconnectRate, m_logger,
-        [](uv::Tcp& tcp) { TcpConnected(tcp); });
+        [this](uv::Tcp& tcp) { TcpConnected(tcp); });
 
     const std::pair<std::string, unsigned int> server = {"127.0.0.1", 9002};
     m_parallelConnect->SetServers(std::array{server});
@@ -115,5 +115,8 @@ int main() {
 
   auto client = WebSocketClient();
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+  // std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+  while (true) {
+    //busywait
+  }
 }

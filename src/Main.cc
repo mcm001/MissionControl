@@ -24,15 +24,6 @@
 
 #include "Plot.h"
 
-#include "MyHttpConnection.h"
-#include "WebSocketHandlers.h"
-#include <wpinet/uv/Loop.h>
-#include <wpinet/uv/Process.h>
-#include <wpinet/uv/Tcp.h>
-#include <wpinet/uv/Timer.h>
-#include <wpinet/uv/Udp.h>
-#include <wpi/Logger.h>
-#include <wpinet/ParallelTcpConnector.h>
 
 using namespace frc5190;
 
@@ -49,115 +40,9 @@ static std::unique_ptr<glass::Window> gNetworkTablesSettingsWindow;
 
 static glass::MainMenuBar main_menu_bar_;
 
-namespace uv = wpi::uv;
-static constexpr uv::Timer::Time kReconnectRate{1000};
-static constexpr uv::Timer::Time kWebsocketHandshakeTimeout{500};
-
-class GuiWebsocketClient {
-public:
-  std::shared_ptr<wpi::ParallelTcpConnector> m_parallelConnect;
-  wpi::Logger m_logger;
-
-
-  GuiWebsocketClient(uv::Loop& loop) {
-    printf("Ctor\n");
-    m_parallelConnect = wpi::ParallelTcpConnector::Create(
-          loop, kReconnectRate, m_logger,
-          [this](uv::Tcp& tcp) { TcpConnected(tcp); });
-    printf("ctor2\n");
-
-    // std::vector<std::pair<std::string, unsigned int>> m_servers = {{"localhost", 9002}};
-    std::vector<std::pair<std::string, unsigned int>> m_servers = {};
-    m_parallelConnect->SetServers(m_servers);
-    printf("ctor3\n");
-  }
-
-  void ProcessIncomingText(std::string_view data) { }
-  void ProcessIncomingBinary(wpi::span<const uint8_t> data) { }
-
-  void Disconnect(std::string_view reason) { }
-
-  void WsConnected(wpi::WebSocket& ws, uv::Tcp& tcp) {
-    m_parallelConnect->Succeeded(tcp);
-
-    // ConnectionInfo connInfo;
-    // uv::AddrToName(tcp.GetPeer(), &connInfo.remote_ip, &connInfo.remote_port);
-    // connInfo.protocol_version = 0x0400;
-
-    ws.closed.connect([this, &ws](uint16_t, std::string_view reason) {
-      if (!ws.GetStream().IsLoopClosing()) {
-        Disconnect(reason);
-      }
-    });
-    ws.text.connect([this](std::string_view data, bool) {
-      ProcessIncomingText(data);
-    });
-    ws.binary.connect([this](wpi::span<const uint8_t> data, bool) {
-      ProcessIncomingBinary(data);
-    });
-  }
-
-  void TcpConnected(uv::Tcp& tcp) {
-    tcp.SetNoDelay(true);
-    // Start the WS client
-    // if (m_logger.min_level() >= wpi::WPI_LOG_DEBUG4) {
-    //   std::string ip;
-    //   unsigned int port = 0;
-    //   uv::AddrToName(tcp.GetPeer(), &ip, &port);
-    //   DEBUG4("Starting WebSocket client on {} port {}", ip, port);
-    // }
-    wpi::WebSocket::ClientOptions options;
-    options.handshakeTimeout = kWebsocketHandshakeTimeout;
-    auto ws =
-        wpi::WebSocket::CreateClient(tcp, fmt::format("/nt/{}", "foobar"), "",
-                                    {{"networktables.first.wpi.edu"}}, options);
-    ws->open.connect([this, &tcp, ws = ws.get()](std::string_view) {
-      // Unclear if we need this, actually
-      // if (m_connList.IsConnected()) {
-      //   ws->Terminate(1006, "no longer needed");
-      //   return;
-      // }
-      WsConnected(*ws, tcp);
-    });
-  }
-};
-
 #include <exception>
 
 void Application(std::string_view save_dir) {
-
-  // ====== WS stuff ========
-  uv::Process::DisableStdioInheritance();
-  auto loop = uv::Loop::Create();
-  loop->error.connect(
-    [](uv::Error err) { fmt::print(stderr, "uv ERROR: {}\n", err.str()); throw std::exception(); });
-
-  // TODO I think this is causing issues
-  GuiWebsocketClient client(loop);
-
-
-  // // when we get a connection, accept it and start reading
-  // tcp->connection.connect([srv = tcp.get()] {
-  //   auto tcp = srv->Accept();
-  //   if (!tcp) return;
-  //   // fmt::print(stderr, "{}", "Got a connection\n");
-
-  //   // Close on error
-  //   tcp->error.connect([s = tcp.get()](wpi::uv::Error err) {
-  //     fmt::print(stderr, "stream error: {}\n", err.str());
-  //     s->Close();
-  //   });
-
-  //   auto conn = std::make_shared<MyHttpConnection>(tcp);
-  //   tcp->SetData(conn);
-  // });
-  //   // start listening for incoming connections
-  // tcp->Listen();
-  // fmt::print(stderr, "Listening on port {}\n", port);
-  loop->Run();
-
-
-  return;
 
   // ============= Glass stuff =============
 
