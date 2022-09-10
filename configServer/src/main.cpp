@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
 
     timer2->Start(std::chrono::seconds(1), std::chrono::seconds(1));
     timer2->timeout.connect([conn] {
-      conn->SendText("Foobar!");
+      conn->SendText("{\"kerTankDucer\": 4}");
     });
   });
 

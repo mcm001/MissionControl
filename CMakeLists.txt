@@ -18,13 +18,7 @@ FetchContent_MakeAvailable(googletest)
 
 # Add our main executable.
 add_executable(MissionControl 
-    src/Main.cc src/Plot.cc)
-
-add_executable(MVP_Server src/MVP_Server.cpp) 
-target_link_libraries(MVP_Server PRIVATE wpiutil wpinet GTest::gtest_main)
-
-add_executable(MVP_Client src/MVP_Client.cpp) 
-target_link_libraries(MVP_Client PRIVATE wpiutil wpinet)
+    src/Main.cc src/Plot.cc src/WebSocketClient.cpp)
 
 # Set include directories.
 target_include_directories(MissionControl PRIVATE include)

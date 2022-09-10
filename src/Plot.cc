@@ -14,10 +14,9 @@
 #include <networktables/NetworkTable.h>
 #include <wpi/numbers>
 #include <wpi/timestamp.h>
-
-#include "Keys.h"
-
 #include <fmt/format.h>
+
+#include "WebSocketClient.h"
 
 using namespace frc5190;
 
@@ -32,16 +31,25 @@ Plot::Plot(std::shared_ptr<nt::NetworkTable> nt) : nt_{nt} {
   last_time = wpi::Now() * 1e-6;
 }
 
+double GetKey(wpi::json json, std::string_view key) {
+  if(!json.is_object() || json.is_null()) return std::nan("");
+  auto value = json[key];
+  if(!json.is_number() || json.is_null()) return std::nan("");
+  return (double) value;
+}
+
 void Plot::Display() {
   // Get current time.
   double now = wpi::Now() * 1.0e-6 - start_time_;
 
-  double fps = 1.0 / (now - last_time);
-  last_time = now;
-  fmt::print("FPS: {}\n", fps);
+  // double fps = 1.0 / (now - last_time);
+  // last_time = now;
+  // fmt::print("FPS: {}\n", fps);
 
   // Add data to plot series.
-  ker_tank_points[size_] = ImPlotPoint{now, nt_->GetNumber("kerTankDucer", 0)};
+  wpi::json current_json = WebSocketClient::GetInstance()->GetData();
+
+  ker_tank_points[size_] = ImPlotPoint{now, GetKey(current_json, "kerTankDucer")};
   ker_venturi_points[size_] = ImPlotPoint{now, nt_->GetNumber("kerVenturi", 0)};
   ker_inlet_points[size_] = ImPlotPoint{now, nt_->GetNumber("kerInletDucer", 0)};
   ker_pintile_points[size_] = ImPlotPoint{now, nt_->GetNumber("kerPintileDucer", 0)};

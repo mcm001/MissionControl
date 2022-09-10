@@ -23,6 +23,7 @@
 #include <wpigui.h>
 
 #include "Plot.h"
+#include "WebSocketClient.h"
 
 
 using namespace frc5190;
@@ -43,6 +44,10 @@ static glass::MainMenuBar main_menu_bar_;
 #include <exception>
 
 void Application(std::string_view save_dir) {
+
+  // This is supposed to go first
+  uv::Process::DisableStdioInheritance();
+  auto client = WebSocketClient();
 
   // ============= Glass stuff =============
 
